@@ -1,9 +1,10 @@
 angular.module('market-front').controller('cartController', function ($scope, $http, $location, $localStorage) {
-    const contextPath = 'http://localhost:5555/core/';
+    const contextPathCore = 'http://localhost:5555/core/';
+    const contextPathCart = 'http://localhost:5555/cart/';
 
     $scope.loadCart = function () {
         $http({
-            url: contextPath + 'api/v1/cart/' + $localStorage.springWebGuestCartId,
+            url: contextPathCart + 'api/v1/cart/' + $localStorage.springWebGuestCartId,
             method: 'GET'
         }).then(function (response) {
             $scope.cart = response.data;
@@ -15,7 +16,7 @@ angular.module('market-front').controller('cartController', function ($scope, $h
     }
 
     $scope.clearCart = function () {
-        $http.get(contextPath + 'api/v1/cart/' + $localStorage.springWebGuestCartId + '/clear')
+        $http.get(contextPathCart + 'api/v1/cart/' + $localStorage.springWebGuestCartId + '/clear')
             .then(function (response) {
                 $scope.loadCart();
             });
@@ -23,13 +24,15 @@ angular.module('market-front').controller('cartController', function ($scope, $h
 
     $scope.checkOut = function () {
         $http({
-            url: contextPath + 'api/v1/orders',
+            url: contextPathCore + 'api/v1/orders',
             method: 'POST',
             data: $scope.orderDetails
         }).then(function (response) {
-            $scope.loadCart();
+            $scope.clearCart();
             $scope.orderDetails = null
-        });
+        }).catch(function (error) {
+           console.error(error);
+        })
     };
 
     $scope.loadCart();
