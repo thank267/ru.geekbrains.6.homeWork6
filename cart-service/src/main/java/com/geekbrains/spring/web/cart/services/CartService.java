@@ -1,21 +1,23 @@
-package com.geekbrains.spring.web.core.services;
+package com.geekbrains.spring.web.cart.services;
 
+import com.geekbrains.spring.web.api.dto.ProductDto;
 import com.geekbrains.spring.web.api.exceptions.ResourceNotFoundException;
-import com.geekbrains.spring.web.core.dto.Cart;
-import com.geekbrains.spring.web.core.entities.Product;
+import com.geekbrains.spring.web.api.dto.Cart;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
 public class CartService {
-    private final ProductsService productsService;
+    private final RestTemplate productTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Value("${utils.cart.prefix}")
@@ -30,6 +32,7 @@ public class CartService {
     }
 
     public Cart getCurrentCart(String cartKey) {
+
         if (!redisTemplate.hasKey(cartKey)) {
             redisTemplate.opsForValue().set(cartKey, new Cart());
         }
@@ -37,9 +40,10 @@ public class CartService {
     }
 
     public void addToCart(String cartKey, Long productId) {
-        Product product = productsService.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Невозможно добавить продукт в корзину. Продукт не найдет, id: " + productId));
+        ProductDto productDto = Optional.ofNullable(productTemplate.getForObject("http://localhost:8189/web-market-core/api/v1/products/"+productId, ProductDto.class))
+                .orElseThrow(() -> new ResourceNotFoundException("Невозможно добавить продукт в корзину. Продукт не найдет, id: " + productId));
         execute(cartKey, c -> {
-            c.add(product);
+            c.add(productDto);
         });
     }
 

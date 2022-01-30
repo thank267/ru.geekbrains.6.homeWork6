@@ -1,14 +1,14 @@
-package com.geekbrains.spring.web.core.dto;
+package com.geekbrains.spring.web.api.dto;
 
-import com.geekbrains.spring.web.core.entities.Product;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 @Data
-public class Cart {
+public class Cart implements Serializable {
     private List<OrderItemDto> items;
     private int totalPrice;
 
@@ -16,11 +16,11 @@ public class Cart {
         this.items = new ArrayList<>();
     }
 
-    public void add(Product product) {
-        if (add(product.getId())) {
+    public void add(ProductDto productDto) {
+        if (add(productDto.getId())) {
             return;
         }
-        items.add(new OrderItemDto(product));
+        items.add(new OrderItemDto(productDto));
         recalculate();
     }
 
